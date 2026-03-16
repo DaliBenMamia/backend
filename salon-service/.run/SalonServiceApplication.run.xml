@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SalonServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="salon-service" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="coifure.coif.salonservice.SalonServiceApplication" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="C:\\Users\\dalib\\.jdks\\ms-21.0.10" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

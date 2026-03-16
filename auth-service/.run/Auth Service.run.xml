@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Auth Service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="auth-service" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="coifure.coif.authservice.AuthServiceApplication" />
+    <option name="VM_PARAMETERS" value="" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

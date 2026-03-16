@@ -1,0 +1,33 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ApiGateway (Maven 8879)" type="MavenRunConfiguration" factoryName="Maven">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings" />
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="profiles">
+            <set />
+          </option>
+          <option name="goals">
+            <list>
+              <option value="spring-boot:run" />
+            </list>
+          </option>
+          <option name="pomFileName" />
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <option name="cmdOptions" value="-Dspring-boot.run.arguments=--server.port=8879" />
+    <option name="env">
+      <map>
+        <entry key="SERVER_PORT" value="8879" />
+        <entry key="EUREKA_ENABLED" value="false" />
+        <entry key="DB_BOOTSTRAP_ENABLED" value="false" />
+        <entry key="AUDIT_DB_ENABLED" value="false" />
+        <entry key="DB_HEALTH_ENABLED" value="false" />
+      </map>
+    </option>
+    <method v="2" />
+  </configuration>
+</component>

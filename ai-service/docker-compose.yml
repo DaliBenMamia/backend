@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-service-postgres
+    environment:
+      POSTGRES_DB: coifure_ai
+      POSTGRES_USER: coifure
+      POSTGRES_PASSWORD: coifure
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coifure -d coifure_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ai-service:
+    build: .
+    container_name: ai-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/coifure_ai
+      SPRING_DATASOURCE_USERNAME: coifure
+      SPRING_DATASOURCE_PASSWORD: coifure
+      SERVER_PORT: 8888
+      EUREKA_CLIENT_ENABLED: "false"
+    ports:
+      - "8888:8888"
+
+volumes:
+  postgres_data:

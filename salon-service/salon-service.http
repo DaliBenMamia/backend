@@ -1,0 +1,11 @@
+### Root status
+GET http://localhost:8894/
+
+### API health
+GET http://localhost:8894/health
+
+### Actuator health
+GET http://localhost:8894/actuator/health
+
+### List salons
+GET http://localhost:8894/api/salons

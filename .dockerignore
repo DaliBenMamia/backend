@@ -1,0 +1,8 @@
+*
+!pom.xml
+!salon-service/
+!salon-service/**
+
+.git
+.idea
+discovery-server/

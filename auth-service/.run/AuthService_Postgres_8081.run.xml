@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AuthService (Postgres 8081)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="coifure.coif.authservice.AuthServiceApplication" />
+    <module name="auth-service" />
+    <option name="PROGRAM_PARAMETERS" value="--server.port=8081 --spring.profiles.active=postgres" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <envs>
+      <env name="SERVER_PORT" value="8081" />
+      <env name="SPRING_PROFILES_ACTIVE" value="postgres" />
+      <env name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://localhost:5432/coifure_auth" />
+      <env name="SPRING_DATASOURCE_USERNAME" value="postgres" />
+      <env name="SPRING_DATASOURCE_PASSWORD" value="postgres" />
+      <env name="APP_JWT_ISSUER" value="coifure-auth-service" />
+      <env name="APP_JWT_ACCESS_TOKEN_EXPIRATION_MINUTES" value="120" />
+      <env name="APP_JWT_SECRET" value="ZmFrZV9zZWNyZXRfZm9yX2Rldl9vbmx5XzMyX2J5dGVzX2tleV8xMjM0NTY=" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

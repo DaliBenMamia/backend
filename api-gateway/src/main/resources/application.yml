@@ -1,0 +1,148 @@
+server:
+  port: ${SERVER_PORT:8881}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    discovery:
+      enabled: ${EUREKA_ENABLED:false}
+    loadbalancer:
+      cache:
+        caffeine:
+          spec: maximumSize=1000,expireAfterWrite=30s
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8220}
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/auth-service
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8893}
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/user-service
+        - id: salon-service
+          uri: ${SALON_SERVICE_URL:http://localhost:8894}
+          predicates:
+            - Path=/api/salons/**,/api/hairdresser-feedback,/api/hairdressers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: salonServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/salon-service
+        - id: booking-service
+          uri: ${BOOKING_SERVICE_URL:http://localhost:8895}
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: bookingServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/booking-service
+        - id: reservation-service
+          uri: ${RESERVATION_SERVICE_URL:http://localhost:8896}
+          predicates:
+            - Path=/api/reservations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: reservationServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/reservation-service
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL:http://localhost:8898}
+          predicates:
+            - Path=/api/promotions/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: promotionServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/promotion-service
+        - id: ai-service
+          uri: ${AI_SERVICE_URL:http://localhost:8888}
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: aiServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/ai-service
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8890}
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCircuitBreaker
+                fallbackUri: forward:/api/gateway/fallback/notification-service
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:127.0.0.1}:${POSTGRES_PORT:5432}/${POSTGRES_DB:gatewaydb}
+    username: ${POSTGRES_USER:gateway}
+    password: ${POSTGRES_PASSWORD:gateway}
+
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    discoveryComposite:
+      enabled: false
+    reactiveDiscoveryClients:
+      enabled: false
+    r2dbc:
+      enabled: ${DB_HEALTH_ENABLED:false}
+  endpoint:
+    health:
+      show-details: always
+
+app:
+  auth-service-url: ${AUTH_SERVICE_URL:http://localhost:8220}
+  auth-propagation:
+    enabled: ${AUTH_PROPAGATION_ENABLED:true}
+  database:
+    bootstrap-enabled: ${DB_BOOTSTRAP_ENABLED:false}
+  audit:
+    enabled: ${AUDIT_DB_ENABLED:false}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+

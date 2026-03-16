@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gateway-postgres
+    environment:
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+    volumes:
+      - gateway-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gatewaydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8881
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+      EUREKA_ENABLED: "false"
+      DB_BOOTSTRAP_ENABLED: "true"
+      AUDIT_DB_ENABLED: "true"
+      AUTH_SERVICE_URL: http://host.docker.internal:8220
+      USER_SERVICE_URL: http://host.docker.internal:8893
+      SALON_SERVICE_URL: http://host.docker.internal:8894
+      BOOKING_SERVICE_URL: http://host.docker.internal:8895
+      RESERVATION_SERVICE_URL: http://host.docker.internal:8896
+      PROMOTION_SERVICE_URL: http://host.docker.internal:8898
+      AI_SERVICE_URL: http://host.docker.internal:8888
+      NOTIFICATION_SERVICE_URL: http://host.docker.internal:8890
+    ports:
+      - "8881:8881"
+
+volumes:
+  gateway-postgres-data:

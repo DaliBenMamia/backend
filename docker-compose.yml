@@ -1,0 +1,369 @@
+services:
+  descovery-service:
+    build:
+      context: ./descovery-server
+    ports:
+      - "8762:8762"
+    environment:
+      DISCOVERY_SERVER_PORT: 8762
+      EUREKA_INSTANCE_HOSTNAME: descovery-service
+
+  auth-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: coifure_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coifure_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+
+  user-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+
+  salon-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: salon_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d salon_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - salon_postgres_data:/var/lib/postgresql/data
+
+  booking-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d booking_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - booking_postgres_data:/var/lib/postgresql/data
+
+  reservation-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reservation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d reservation_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - reservation_postgres_data:/var/lib/postgresql/data
+
+  promotions-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: promotion_db
+      POSTGRES_USER: promotion_user
+      POSTGRES_PASSWORD: promotion_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promotion_user -d promotion_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - promotions_postgres_data:/var/lib/postgresql/data
+
+  ai-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: coifure_ai
+      POSTGRES_USER: coifure
+      POSTGRES_PASSWORD: coifure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coifure -d coifure_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ai_postgres_data:/var/lib/postgresql/data
+
+  notification-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notification_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+
+  gateway-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gatewaydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - gateway_postgres_data:/var/lib/postgresql/data
+
+
+
+  auth-service:
+    build:
+      context: ./auth-service
+    ports:
+      - "8220:8220"
+    environment:
+      SERVER_PORT: 8220
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/coifure_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://descovery-service:8762/eureka/
+      APP_USER_SERVICE_URL: http://user-service:8893
+    depends_on:
+      descovery-service:
+        condition: service_started
+      auth-postgres:
+        condition: service_healthy
+
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - "8893:8893"
+    environment:
+      SERVER_PORT: 8893
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-postgres:5432/user_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+      EUREKA_DEFAULT_ZONE: http://descovery-service:8762/eureka/
+    depends_on:
+      descovery-service:
+        condition: service_started
+      user-postgres:
+        condition: service_healthy
+
+  salon-service:
+    build:
+      context: .
+      dockerfile: salon-service/Dockerfile
+    ports:
+      - "8894:8894"
+    environment:
+      SERVER_PORT: 8894
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://salon-postgres:5432/salon_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://descovery-service:8762/eureka/
+    depends_on:
+      descovery-service:
+        condition: service_started
+      salon-postgres:
+        condition: service_healthy
+
+  booking-service:
+    build:
+      context: ./booking-service
+    ports:
+      - "8895:8895"
+    environment:
+      DB_URL: jdbc:postgresql://booking-postgres:5432/booking_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DRIVER: org.postgresql.Driver
+      USER_SERVICE_URL: http://user-service:8893
+      SALON_SERVICE_URL: http://salon-service:8894
+      AUTH_SERVICE_URL: http://auth-service:8220
+      EXTERNAL_AUTH_VALIDATION_ENABLED: "false"
+      EXTERNAL_USER_VALIDATION_ENABLED: "false"
+      EXTERNAL_SALON_VALIDATION_ENABLED: "false"
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+      EUREKA_DEFAULT_ZONE: http://descovery-service:8762/eureka/
+    depends_on:
+      descovery-service:
+        condition: service_started
+      booking-postgres:
+        condition: service_healthy
+
+  reservation-service:
+    build:
+      context: ./reservation-service
+    ports:
+      - "8896:8896"
+    environment:
+      HTTP_PORT: 8896
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://reservation-postgres:5432/reservation_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://descovery-service:8762/eureka/
+      INTEGRATION_SERVICES_ENABLED: "true"
+      INTEGRATION_USER_BY_ID_URL_TEMPLATE: http://user-service:8893/api/users/{id}
+      INTEGRATION_SALON_BY_ID_URL_TEMPLATE: http://salon-service:8894/api/salons/{id}
+      INTEGRATION_HAIRDRESSER_BY_ID_URL_TEMPLATE: http://salon-service:8894/api/hairdressers/{id}
+      APP_SECURITY_ENABLED: "false"
+    depends_on:
+      descovery-service:
+        condition: service_started
+      reservation-postgres:
+        condition: service_healthy
+
+  promotions-service:
+    build:
+      context: ./promotions-service
+    ports:
+      - "8898:8898"
+    environment:
+      SERVER_PORT: 8898
+      SPRING_DATASOURCE_URL: jdbc:postgresql://promotions-postgres:5432/promotion_db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_USERNAME: promotion_user
+      SPRING_DATASOURCE_PASSWORD: promotion_password
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      DISCOVERY_ENABLED: "true"
+      EUREKA_ENABLED: "true"
+      EUREKA_SERVER_URL: http://descovery-service:8762/eureka/
+      EVENTS_ENABLED: "false"
+    depends_on:
+      descovery-service:
+        condition: service_started
+      promotions-postgres:
+        condition: service_healthy
+
+  ai-service:
+    build:
+      context: ./ai-service
+    ports:
+      - "8888:8888"
+    environment:
+      SERVER_PORT: 8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ai-postgres:5432/coifure_ai
+      SPRING_DATASOURCE_USERNAME: coifure
+      SPRING_DATASOURCE_PASSWORD: coifure
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+      EUREKA_DEFAULT_ZONE: http://descovery-service:8762/eureka/
+    depends_on:
+      descovery-service:
+        condition: service_started
+      ai-postgres:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./notification-service
+    ports:
+      - "8890:8890"
+    environment:
+      SERVER_PORT: 8890
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://descovery-service:8762/eureka/
+      APP_KAFKA_ENABLED: "false"
+      APP_DELIVERY_ENABLED: "false"
+    depends_on:
+      descovery-service:
+        condition: service_started
+      notification-postgres:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "8881:8881"
+    environment:
+      SERVER_PORT: 8881
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://descovery-service:8762/eureka/
+      POSTGRES_HOST: gateway-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+      DB_BOOTSTRAP_ENABLED: "true"
+      AUDIT_DB_ENABLED: "true"
+      AUTH_SERVICE_URL: http://auth-service:8220
+      USER_SERVICE_URL: http://user-service:8893
+      SALON_SERVICE_URL: http://salon-service:8894
+      BOOKING_SERVICE_URL: http://booking-service:8895
+      RESERVATION_SERVICE_URL: http://reservation-service:8896
+      PROMOTION_SERVICE_URL: http://promotions-service:8898
+      AI_SERVICE_URL: http://ai-service:8888
+      NOTIFICATION_SERVICE_URL: http://notification-service:8890
+    depends_on:
+      descovery-service:
+        condition: service_started
+      gateway-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      salon-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      reservation-service:
+        condition: service_started
+      promotions-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+volumes:
+  ai_postgres_data:
+  auth_postgres_data:
+  booking_postgres_data:
+  gateway_postgres_data:
+  notification_postgres_data:
+  promotions_postgres_data:
+  reservation_postgres_data:
+  salon_postgres_data:
+  user_postgres_data:

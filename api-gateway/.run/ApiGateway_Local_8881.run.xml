@@ -1,0 +1,32 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ApiGateway (Local 8881)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="coifure.coif.apigateway.ApiGatewayApplication" />
+    <module name="api-gateway" />
+    <option name="PROGRAM_PARAMETERS" value="--server.port=8881" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="VM_PARAMETERS" value="-Dspring.output.ansi.enabled=always" />
+    <envs>
+      <env name="SERVER_PORT" value="8881" />
+      <env name="EUREKA_ENABLED" value="false" />
+      <env name="POSTGRES_HOST" value="127.0.0.1" />
+      <env name="POSTGRES_PORT" value="5432" />
+      <env name="POSTGRES_DB" value="gatewaydb" />
+      <env name="POSTGRES_USER" value="gateway" />
+      <env name="POSTGRES_PASSWORD" value="gateway" />
+      <env name="DB_BOOTSTRAP_ENABLED" value="false" />
+      <env name="AUDIT_DB_ENABLED" value="false" />
+      <env name="DB_HEALTH_ENABLED" value="false" />
+      <env name="AUTH_SERVICE_URL" value="http://localhost:8081" />
+      <env name="USER_SERVICE_URL" value="http://localhost:8082" />
+      <env name="SALON_SERVICE_URL" value="http://localhost:8083" />
+      <env name="BOOKING_SERVICE_URL" value="http://localhost:8084" />
+      <env name="RESERVATION_SERVICE_URL" value="http://localhost:8085" />
+      <env name="PROMOTION_SERVICE_URL" value="http://localhost:8086" />
+      <env name="AI_SERVICE_URL" value="http://localhost:8087" />
+      <env name="NOTIFICATION_SERVICE_URL" value="http://localhost:8088" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

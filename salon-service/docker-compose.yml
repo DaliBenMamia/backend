@@ -1,0 +1,38 @@
+﻿services:
+  postgres:
+    image: postgres:16
+    container_name: salon-postgres
+    environment:
+      POSTGRES_DB: salon_db
+      POSTGRES_USER: salon
+      POSTGRES_PASSWORD: salon
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salon -d salon_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  salon-service:
+    build:
+      context: ..
+      dockerfile: salon-service/Dockerfile
+    container_name: salon-service
+    environment:
+      SERVER_PORT: 8894
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/salon_db
+      SPRING_DATASOURCE_USERNAME: salon
+      SPRING_DATASOURCE_PASSWORD: salon
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_PROFILES_ACTIVE: postgres
+    ports:
+      - "8894:8894"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

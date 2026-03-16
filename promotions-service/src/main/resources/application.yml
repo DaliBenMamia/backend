@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8898}
+
+spring:
+  application:
+    name: promotion-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:promotiondb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  cloud:
+    discovery:
+      enabled: ${DISCOVERY_ENABLED:false}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+
+app:
+  events:
+    enabled: ${EVENTS_ENABLED:false}
+    topics:
+      promotion-created: ${PROMOTION_CREATED_TOPIC:promotion.created}
+      promotion-status-updated: ${PROMOTION_STATUS_UPDATED_TOPIC:promotion.status.updated}

@@ -1,0 +1,540 @@
+services:
+  discovery-server:
+    build: .
+    container_name: discovery-server
+    environment:
+      DISCOVERY_SERVER_PORT: 8762
+      SPRING_SECURITY_USER_NAME: admin
+      SPRING_SECURITY_USER_PASSWORD: admin123
+      EUREKA_INSTANCE_HOSTNAME: discovery-server
+    ports:
+      - "8762:8762"
+    networks:
+      - coifure-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - coifure-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_started
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "29092:29092"
+    networks:
+      - coifure-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - coifure-network
+
+  notification-provider:
+    image: ealen/echo-server:0.9.2
+    container_name: notification-provider
+    ports:
+      - "8089:80"
+    networks:
+      - coifure-network
+
+  auth-postgres:
+    image: postgres:16
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: coifure_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coifure_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  user-postgres:
+    image: postgres:16
+    container_name: user-postgres
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  salon-postgres:
+    image: postgres:16
+    container_name: salon-postgres
+    environment:
+      POSTGRES_DB: salon_db
+      POSTGRES_USER: salon
+      POSTGRES_PASSWORD: salon
+    volumes:
+      - salon_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salon -d salon_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  booking-postgres:
+    image: postgres:16
+    container_name: booking-postgres
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_pass
+    volumes:
+      - booking_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking_user -d booking_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  reservation-postgres:
+    image: postgres:16
+    container_name: reservation-postgres
+    environment:
+      POSTGRES_DB: reservation_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - reservation_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d reservation_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  promotions-postgres:
+    image: postgres:16
+    container_name: promotions-postgres
+    environment:
+      POSTGRES_DB: promotion_db
+      POSTGRES_USER: promotion_user
+      POSTGRES_PASSWORD: promotion_password
+    volumes:
+      - promotions_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promotion_user -d promotion_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  notification-postgres:
+    image: postgres:16
+    container_name: notification-postgres
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notification_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  ai-postgres:
+    image: postgres:16
+    container_name: ai-postgres
+    environment:
+      POSTGRES_DB: coifure_ai
+      POSTGRES_USER: coifure
+      POSTGRES_PASSWORD: coifure
+    volumes:
+      - ai_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coifure -d coifure_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  gateway-postgres:
+    image: postgres:16
+    container_name: gateway-postgres
+    environment:
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+    volumes:
+      - gateway_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gatewaydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coifure-network
+
+  auth-service:
+    build:
+      context: ../auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8220
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/coifure_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://discovery-server:8762/eureka/
+    ports:
+      - "8220:8220"
+    networks:
+      - coifure-network
+
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      user-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8893
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-postgres:5432/user_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8762/eureka/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8893:8893"
+    networks:
+      - coifure-network
+
+  salon-service:
+    build:
+      context: ..
+      dockerfile: salon-service/Dockerfile
+    container_name: salon-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      salon-postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8894
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://salon-postgres:5432/salon_db
+      SPRING_DATASOURCE_USERNAME: salon
+      SPRING_DATASOURCE_PASSWORD: salon
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://discovery-server:8762/eureka/
+      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+      OBJECT_STORAGE_BUCKET: salons
+      OBJECT_STORAGE_ACCESS_KEY: minioadmin
+      OBJECT_STORAGE_SECRET_KEY: minioadmin
+    ports:
+      - "8894:8894"
+    networks:
+      - coifure-network
+
+  booking-service:
+    build:
+      context: ../booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      booking-postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      salon-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8895
+      DB_URL: jdbc:postgresql://booking-postgres:5432/booking_db
+      DB_USERNAME: booking_user
+      DB_PASSWORD: booking_pass
+      DB_DRIVER: org.postgresql.Driver
+      USER_SERVICE_URL: http://user-service:8893
+      SALON_SERVICE_URL: http://salon-service:8894
+      AUTH_SERVICE_URL: http://auth-service:8220
+      AI_SERVICE_URL: http://ai-service:8888
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8762/eureka/
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+    ports:
+      - "8895:8895"
+    networks:
+      - coifure-network
+
+  reservation-service:
+    build:
+      context: ../reservation-service
+      dockerfile: Dockerfile
+    container_name: reservation-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      reservation-postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      salon-service:
+        condition: service_started
+    environment:
+      HTTP_PORT: 8896
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://reservation-postgres:5432/reservation_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_CLOUD_DISCOVERY_ENABLED: "true"
+      INTEGRATION_SERVICES_ENABLED: "true"
+      INTEGRATION_USER_BY_ID_URL_TEMPLATE: http://user-service:8893/api/users/{id}
+      INTEGRATION_SALON_BY_ID_URL_TEMPLATE: http://salon-service:8894/api/salons/{id}
+      INTEGRATION_HAIRDRESSER_BY_ID_URL_TEMPLATE: http://salon-service:8894/api/hairdressers/{id}
+      APP_SECURITY_ENABLED: "false"
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://discovery-server:8762/eureka/
+    ports:
+      - "8896:8896"
+    networks:
+      - coifure-network
+
+  promotions-service:
+    build:
+      context: ../promotions-service
+      dockerfile: Dockerfile
+    container_name: promotions-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      promotions-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      salon-service:
+        condition: service_started
+      minio:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8898
+      SPRING_DATASOURCE_URL: jdbc:postgresql://promotions-postgres:5432/promotion_db
+      SPRING_DATASOURCE_USERNAME: promotion_user
+      SPRING_DATASOURCE_PASSWORD: promotion_password
+      DISCOVERY_ENABLED: "true"
+      EUREKA_ENABLED: "true"
+      EUREKA_SERVER_URL: http://discovery-server:8762/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EVENTS_ENABLED: "true"
+      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+      OBJECT_STORAGE_BUCKET: promotions
+      OBJECT_STORAGE_ACCESS_KEY: minioadmin
+      OBJECT_STORAGE_SECRET_KEY: minioadmin
+    ports:
+      - "8898:8898"
+    networks:
+      - coifure-network
+
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service
+    depends_on:
+      ai-postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      salon-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      promotions-service:
+        condition: service_started
+      minio:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ai-postgres:5432/coifure_ai
+      SPRING_DATASOURCE_USERNAME: coifure
+      SPRING_DATASOURCE_PASSWORD: coifure
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_REGISTER: "true"
+      EUREKA_FETCH: "true"
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8762/eureka/
+      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+      OBJECT_STORAGE_BUCKET: ai-assets
+      OBJECT_STORAGE_ACCESS_KEY: minioadmin
+      OBJECT_STORAGE_SECRET_KEY: minioadmin
+      USER_SERVICE_URL: http://user-service:8893
+      SALON_SERVICE_URL: http://salon-service:8894
+      BOOKING_SERVICE_URL: http://booking-service:8895
+      PROMOTION_SERVICE_URL: http://promotions-service:8898
+    ports:
+      - "8888:8888"
+    networks:
+      - coifure-network
+
+  notification-service:
+    build:
+      context: ../notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    depends_on:
+      discovery-server:
+        condition: service_started
+      notification-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      notification-provider:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8890
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_KAFKA_ENABLED: "true"
+      APP_DELIVERY_ENABLED: "true"
+      APP_DELIVERY_BASE_URL: http://notification-provider
+      APP_DELIVERY_ENDPOINT: /
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8762/eureka/
+    ports:
+      - "8890:8890"
+    networks:
+      - coifure-network
+
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      discovery-server:
+        condition: service_started
+      gateway-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      salon-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      reservation-service:
+        condition: service_started
+      promotions-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8881
+      POSTGRES_HOST: gateway-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gatewaydb
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+      DB_HEALTH_ENABLED: "true"
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://discovery-server:8762/eureka/
+      AUTH_SERVICE_URL: lb://auth-service
+      USER_SERVICE_URL: lb://user-service
+      SALON_SERVICE_URL: lb://SALON-SERVICE
+      BOOKING_SERVICE_URL: lb://booking-service
+      RESERVATION_SERVICE_URL: lb://reservation-service
+      PROMOTION_SERVICE_URL: lb://promotion-service
+      AI_SERVICE_URL: lb://ai-service
+      NOTIFICATION_SERVICE_URL: lb://notification-service
+    ports:
+      - "8881:8881"
+    networks:
+      - coifure-network
+
+networks:
+  coifure-network:
+    driver: bridge
+
+volumes:
+  ai_postgres_data:
+  auth_postgres_data:
+  booking_postgres_data:
+  gateway_postgres_data:
+  minio_data:
+  notification_postgres_data:
+  promotions_postgres_data:
+  reservation_postgres_data:
+  salon_postgres_data:
+  user_postgres_data:

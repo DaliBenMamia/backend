@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Reservation Service (dev)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="reservation-service" />
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <option name="MAIN_CLASS_NAME" value="coifure.coif.reservationservice.ReservationServiceApplication" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="coifure.coif.reservationservice.ReservationServiceApplication" />
+    <envs>
+      <env name="APP_SECURITY_ENABLED" value="false" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

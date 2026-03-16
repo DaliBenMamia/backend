@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Auth Stack Docker Compose" type="docker-deploy" factoryName="docker-compose.yml">
+    <option name="sourceFilePath" value="$PROJECT_DIR$/docker-compose.yml" />
+    <option name="command" value="UP" />
+    <option name="detachedMode" value="true" />
+    <option name="removeVolumesOnDown" value="false" />
+    <option name="removeImagesOnDown" value="NONE" />
+    <option name="envFilePath" value="" />
+    <method v="2" />
+  </configuration>
+</component>
